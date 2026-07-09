@@ -1,0 +1,8 @@
+django-redis==7.0.0
+django-rq==4.1.1
+djangorestframework==3.17.1
+gunicorn==26.0.0
+pip==24.0
+psycopg2-binary==2.9.12
+python-dotenv==1.2.2
+whitenoise==6.12.0
