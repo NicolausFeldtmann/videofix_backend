@@ -12,14 +12,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        field = ["user", "email", "username"]
+        fields = ["user", "email"]
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
     confirmed_password = serializers.CharField(write_only=True)
-    
-    class Meta:
-        model = User
-        field = ["email", "password", "confirmed_password", "status"]
 
     def validate_email(self, value):
         try:
@@ -27,23 +25,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
         except ValidationError:
             raise serializers.ValidationError("Invalid email.")
         if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError({"Email allready in use."})
+            raise serializers.ValidationError("Email already in use.")
         return value
 
     def validate(self, data):
-        if data.get("password") != data.get("confirmed_password"):
-            raise serializers.ValidationError({"Passwords don't match."})
+        if data['password'] != data["confirmed_password"]:
+            raise serializers.ValidationError("Passwords don't match.")
         return data
 
     def create(self, validated_data):
-        username = validated_data.pop("username")
-        email = validated_data.pop("email")
-        password = validated_data.pop("password")
-        status = validated_data.pop("status")
+        email = validated_data["email"]
+        password = validated_data["password"]
 
-        user = User(username=username, email=email, password=password, status=status)
+        user = User(username=email, email=email)
         user.set_password(password)
         user.save()
 
-        UserProfile.objects.create(user=user, username=username, password=password, email=email)
+        UserProfile.objects.create(user=user, email=email)
         return user
