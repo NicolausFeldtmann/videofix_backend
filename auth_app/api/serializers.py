@@ -1,7 +1,8 @@
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from auth_app.models import UserProfile
 
 User = get_user_model()
@@ -43,3 +44,30 @@ class RegistrationSerializer(serializers.Serializer):
 
         UserProfile.objects.create(user=user, email=email)
         return user
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.pop("username", None)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if not email or not password:
+            raise serializers.ValidationError("Email and password required")
+
+        try:
+            user_obj = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No active account found.")
+
+        if not user_obj.check_password(password):
+            raise serializers.ValidationError("No active account found.")
+
+        data = super().validate({"username": user_obj.username, "password": password})
+        self.user = user_obj
+        return data
