@@ -15,7 +15,6 @@ pycache/
 pip-wheel-metadata/
 *.egg-info/
 
-db.sqlite3
 media/
 staticfiles/
 
@@ -36,3 +35,7 @@ dist/
 .env.*
 *.key
 *.pem
+
+backend.Dockerfile
+backend.entrypoint.sh
+docker-compose.yml

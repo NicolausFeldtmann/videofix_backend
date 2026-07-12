@@ -23,29 +23,10 @@ class RegistrationView(APIView):
 
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             user = serializer.save()
             token, _ = Token.objects.get_or_create(user=user)
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            activation_token = default_token_generator.make_token(user)
-            activation_path = reverse(
-                "activate-account",
-                kwargs={"uidb64": uidb64, "token": activation_token}
-            )
-            activation_url = f"{request.scheme}://{request.get_host()}{activation_path}"
-
-            send_mail(
-                subject="Activate your Account.",
-                message=(
-                    f"Almost done,\n\n"
-                    f"please click the confirmation link to verify your email address:\n"
-                    f"{activation_url}\n\n"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
 
             data = {
                 "user": {
