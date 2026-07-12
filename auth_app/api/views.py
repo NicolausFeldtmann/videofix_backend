@@ -89,6 +89,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         refresh = serializer.validated_data.get("refresh")
         access = serializer.validated_data.get("access")
 
+        cookie_secure = not settings.DEBUG
+
         response = Response(
             {
                 "detail": "Login successful",
@@ -104,16 +106,18 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="access_token",
             value=access,
             httponly=True,
-            secure=True,
+            secure=cookie_secure,
             samesite="Lax",
+            path="/",
         )
 
         response.set_cookie(
             key="refresh_token",
             value=refresh,
             httponly=True,
-            secure=True,
+            secure=cookie_secure,
             samesite="Lax",
+            path="/",
         )
         return response
 
@@ -132,25 +136,35 @@ class CookieRefreshView(TokenRefreshView):
             return Response({"detail": "Refresh token invalid"}, status=status.HTTP_401_UNAUTHORIZED)
         
         access_token = serializer.validated_data.get("access")
+        cookie_secure = not settings.DEBUG
         response = Response({"detail": "Token refreshed."})
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=True,
-            samesite="Lax"
+            secure=cookie_secure,
+            samesite="Lax",
+            path="/"
         )
         return response
 
 class LogoutView(APIView):
-    """
-    View to handle user logout.
-    Eraseses access and refresh cookie of user.
-    """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        response = Response({"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
-        response.delete_cookie("access_token", path="/")
-        response.delete_cookie("refresh_token", path="/")
+    def post(self, request):
+        response = Response(
+            {"detail": "Logout successful"},
+            status=status.HTTP_200_OK
+        )
+        
+        response.delete_cookie(key="access_token", path="/")
+        response.delete_cookie(key="refresh_token", path="/")
+        
         return response
+
+
+class HelloWorldView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"message": "Hällo Wörld!"})
