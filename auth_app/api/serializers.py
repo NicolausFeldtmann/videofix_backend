@@ -68,6 +68,15 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not user_obj.check_password(password):
             raise serializers.ValidationError("No active account found.")
 
+        try:
+            profile = UserProfile.objects.get(user=user_obj)
+            if profile.status != "active":
+                raise serializers.ValidationError(
+                    "Please activate your account first."
+                )
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError("No account found.")
+
         data = super().validate({"username": user_obj.username, "password": password})
         self.user = user_obj
         return data
