@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404
 
 from auth_app.models import UserProfile
 from .serializers import UserProfileSerializer, RegistrationSerializer, EmailTokenObtainPairSerializer, PasswordResetConfirmSerializer, PasswordResetSerializer
+from auth_app.signals import password_reset_requested
 
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -143,7 +144,6 @@ class LogoutView(APIView):
         
         return response
 
-
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
 
@@ -163,19 +163,7 @@ class PasswordResetView(APIView):
             domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
             protocol = 'https' if not settings.DEBUG else 'http'
             reset_url = f"{protocol}://{domain}{reset_path}"
-
-            send_mail(
-                subject='Resset Password',
-                message=(
-                    f"Hallo {user.username}, \n\n"
-                    f"Please use the link to change your password:\n"
-                    f"{reset_url}\n\n"
-                    f"This link is 24h valid\n\n"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False
-            )
+            password_reset_requested.send(sender=PasswordResetView, user=user, reset_url=reset_url)
 
             return Response(
                 {"detail": "Password-reset-link has been send."},
