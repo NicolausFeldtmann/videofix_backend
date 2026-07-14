@@ -71,3 +71,22 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate({"username": user_obj.username, "password": password})
         self.user = user_obj
         return data
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email__iexact=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Email not found.")
+        return value
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError("Password don't match")
+        return data
