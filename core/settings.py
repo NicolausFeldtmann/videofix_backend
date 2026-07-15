@@ -14,6 +14,7 @@ from pathlib import Path
 
 import os
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 load_dotenv()
 
@@ -39,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://lo
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'corsheaders',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -48,10 +50,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_rq',
     'auth_app.apps.AuthAppConfig',
+    'video_app.apps.VideoAppConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,7 +65,27 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'your-domain.com', 'testserver']
+CSRF_TRUSTED_ORIGINS = [
+
+  'http://127.0.0.1:5500',
+
+  'http://localhost:5500',
+
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+
+  'http://127.0.0.1:5500',
+
+  'http://localhost:5500',
+
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'X-CSRFToken',
+]
 
 ROOT_URLCONF = 'core.urls'
 
