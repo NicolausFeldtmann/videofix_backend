@@ -7,3 +7,10 @@ class VideoSerializer(serializers.ModelSerializer):
         model = VideoModel
         fields = ["id", "created_at", "titel", "description", "thumbnail_url", "category", "video_file"]
         read_only_fields = ["id", "created_at"]
+
+class SingleVideoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VideoModel
+        fields = ["id", "created_at", "titel", "description", "thumbnail_url", "category", "video_file"]
+        

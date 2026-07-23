@@ -71,6 +71,8 @@ CSRF_TRUSTED_ORIGINS = [
 
   'http://localhost:5500',
 
+  'http://localhost:6379',
+
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -80,6 +82,8 @@ CORS_ALLOWED_ORIGINS = [
   'http://127.0.0.1:5500',
 
   'http://localhost:5500',
+
+  'http://localhost:6379',
 
 ]
 
@@ -121,6 +125,15 @@ DATABASES = {
     }
 }
 
+RQ_QUEUES = {
+    "default": {
+        "HOST": os.environ.get("REDIS_HOST", "redis"),
+        "PORT": 6379,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 360,
+    }
+}
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -131,16 +144,7 @@ CACHES = {
         "KEY_PREFIX": "videoflix"
     }
 }
-
-RQ_QUEUES = {
-    'default': {
-        'HOST': os.environ.get("REDIS_HOST", default="redis"),
-        'PORT': os.environ.get("REDIS_PORT", default=6379),
-        'DB': os.environ.get("REDIS_DB", default=0),
-        'DEFAULT_TIMEOUT': 900,
-        'REDIS_CLIENT_KWARGS': {},
-    },
-}
+#
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -190,7 +194,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "env" / "media"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
