@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from video_app.models import VideoModel
 from video_app.tasks import generate_hls
 from .serializers import VideoSerializer, SingleVideoSerializer
-from .services import ensure_hls_for_resolution, ensure_hls_variants_queued, resolve_segemtn_path, build_master_playlist_lines
+from .services import ensure_hls_for_resolution, ensure_hls_variants_queued, resolve_segemtn_path, \
+ build_master_playlist_lines, is_supported_resolution, get_playlist_or_enqueue
 import django_rq
 
 class VideoListCreateView(generics.ListCreateAPIView):
@@ -35,29 +36,16 @@ class VideoHLSPlaylistView(APIView):
         video = get_object_or_404(VideoModel, pk=movie_id)
 
         if not video.video_file:
-            raise Http404("Video file not available.")
+            raise Http404("Video filenot available.")
 
-        if resolution not in VideoModel.HLS_RESOLUTIONS:
-            return Response(
-                {"detail": "Unsupported resolution"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not is_supported_resolution(resolution):
+            return Response({"detail": "unsuported resolution"}, status=stauts.HTTP_400_BAD_REQUEST)
 
-        playlist_path = video.get_hls_playlist_path(resolution)
+        playlist = get_playlist_or_enqueue(video, resolution)
+        if playlist:
+            return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegutl")
 
-        if playlist_path and playlist_path.exists():
-            return FileResponse(
-                open(playlist_path, "rb"), 
-                content_type="application/vnd.apple.mpegurl"
-            )
-
-        queue = django_rq.get_queue("default")
-        queue.enqueue(generate_hls, video.video_file.path, resolution)
-
-        return Response(
-            {"detail": "HLS playlist generation started, try again later."},
-            status=status.HTTP_200_OK,
-        )
+        return Response({"detail": "HLS playlist generation started, try again later."}, status=status.HTTP_200_OK)
 
 class VideoHLSSegmentView(APIView):
     permission_classes = [IsAuthenticated]

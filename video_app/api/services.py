@@ -1,7 +1,7 @@
 import os
 import django_rq
 from django.http import HttpRequest
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 from video_app.models import VideoModel
 from video_app.tasks import generate_hls
@@ -34,3 +34,14 @@ def build_master_playlist_lines(video: VideoModel, request: HttpRequest) -> List
         lines.append(f"#EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={width}x{height}")
         lines.append(playlist_url)
     return lines
+
+def is_supported_resolution(resolution: str) -> bool:
+    return resolution
+
+def get_playlist_or_enqueue(video: VideoModel, resolution: str, queue_name: str = "default") -> Optional[Path]:
+    playlist = video.get_hls_playlist_path(resolution)
+    if playlist and playlist.exists():
+        return playlist
+    queue = django_rq.get_queue(queue_name)
+    queue.enqueue(generate_hls, video.video_file.path, resolution)
+    return None
