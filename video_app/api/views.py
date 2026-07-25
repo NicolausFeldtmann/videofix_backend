@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from video_app.models import VideoModel
 from video_app.tasks import generate_hls
 from .serializers import VideoSerializer, SingleVideoSerializer
-from .services import ensure_hls_for_resolution, resolve_segemtn_path
+from .services import ensure_hls_for_resolution, ensure_hls_variants_queued, resolve_segemtn_path, build_master_playlist_lines
 import django_rq
 
 class VideoListCreateView(generics.ListCreateAPIView):
@@ -89,31 +89,11 @@ class VideoHLSMasterView(APIView):
 
     def get(self, request, movie_id):
         video = get_object_or_404(VideoModel, pk=movie_id)
-
         if not video.video_file:
             raise Http404("Video file not available.")
 
-        queue = django_rq.get_queue("default")
-        for resolution in VideoModel.HLS_RESOLUTIONS:
-            playlist_path = video.get_hls_playlist_path(resolution)
-            if not (playlist_path and playlist_path.exists()):
-                queue.enqueue(generate_hls, video.video_file.path, resolution)
+        ensure_hls_variants_queued(video)
 
-        lines = ["#EXTM3U"]
-        for resolution, size in VideoModel.HLS_RESOLUTIONS.items():
-            width, height = size.split("x")
-            bandwidth = {
-                "360p": 800000, 
-                "480p": 1400000, 
-                "720p": 2800000
-            }.get(resolution, 1000000)
-            playlist_url = request.build_absolute_uri(
-                f"/video/{movie_id}/{resolution}/index.m3u8"
-            )
-            lines.append(
-                f"#EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={width}x{height}"
-            )
-            lines.append(playlist_url)
-
+        lines = build_master_playlist_lines(video, request)
         content = "\n".join(lines) + "\n"
         return HttpResponse(content, content_type="application/vnd.apple.mpegurl")
