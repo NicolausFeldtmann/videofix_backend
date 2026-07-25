@@ -2,11 +2,12 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny,IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from video_app.models import VideoModel
 from video_app.tasks import generate_hls
 from .serializers import VideoSerializer, SingleVideoSerializer
+from .services import ensure_hls_for_resolution, resolve_segemtn_path
 import django_rq
 
 class VideoListCreateView(generics.ListCreateAPIView):
@@ -16,7 +17,7 @@ class VideoListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsAdminUser()]
-        return [AllowAny()]
+        return [IsAuthenticated()]
 
 class SingleVideoView(generics.RetrieveUpdateDestroyAPIView):
     queryset = VideoModel.objects.all()
@@ -25,10 +26,10 @@ class SingleVideoView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "DELETE":
             return [IsAdminUser()]
-        return [AllowAny()]
+        return [IsAuthenticated()]
 
 class VideoHLSPlaylistView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id, resolution):
         video = get_object_or_404(VideoModel, pk=movie_id)
@@ -55,11 +56,11 @@ class VideoHLSPlaylistView(APIView):
 
         return Response(
             {"detail": "HLS playlist generation started, try again later."},
-            status=status.HTTP_202_ACCEPTED,
+            status=status.HTTP_200_OK,
         )
 
 class VideoHLSSegmentView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id, resolution, segment):
         video = get_object_or_404(VideoModel, pk=movie_id)
@@ -68,41 +69,23 @@ class VideoHLSSegmentView(APIView):
             raise Http404("Video file not available.")
 
         if resolution not in VideoModel.HLS_RESOLUTIONS:
-            return Response(
-                {"detail": "Unsuported resolution"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "Unsuported resolution"}, status=stauts.HTTP_400_BAD_REQUEST)
 
         try:
-            segment_path = video.get_hls_segment_path(resolution, segment)
+            segment_path = resolve_segemtn_path(video, resolution, segment)
         except ValueError:
-            return Response(
-                {"detail": "Invalid segment path"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "Invalid segment path"}, status=stauts.HTTP_400_BAD_REQUEST)
 
         if segment_path.exists():
-            return FileResponse(
-                open(segment_path, "rb"),
-                content_type="video/MP2T"
-            )
+            return FileResponse(open(segment_path, "rb"), content_type="video/MP2T")
 
-        playlist_path = video.get_hls_playlist_path(resolution)
-
-        if not (playlist_path and playlist_path.exists()):
-            queue = django_rq.get_queue("default")
-            queue.enqueue(generate_hls, video.video_file.path, resolution)
-            return Response(
-                {"detail": "HLS generation started. Try again later"},
-                status=status.HTTP_202_ACCEPTED
-            )
-        return Response(
-            {"detail": "Segment not yet available, try again later."},
-            status=status.HTTP_202_ACCEPTED
-        )
+        playlist_ready = ensure_hls_for_resolution(video, resolution)
+        if not playlist_ready:
+            return Response({"detail": "HLS generation started, try again later"}, status=status.HTTP_200_OK)
+        return Response({"detail": "Segment path not yet available, try again later"}, status=starus.HTTP_200_OK)
 
 class VideoHLSMasterView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id):
         video = get_object_or_404(VideoModel, pk=movie_id)
