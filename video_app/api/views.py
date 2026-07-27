@@ -45,7 +45,7 @@ class VideoHLSPlaylistView(APIView):
         if playlist:
             return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegutl")
 
-        return Response({"detail": "HLS playlist generation started, try again later."}, status=status.HTTP_200_OK)
+        return Response({"detail": "HLS playlist generation started."}, status=status.HTTP_200_OK)
 
 class VideoHLSSegmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -69,7 +69,7 @@ class VideoHLSSegmentView(APIView):
 
         playlist_ready = ensure_hls_for_resolution(video, resolution)
         if not playlist_ready:
-            return Response({"detail": "HLS generation started, try again later"}, status=status.HTTP_200_OK)
+            return Response({"detail": "HLS generation started."}, status=status.HTTP_200_OK)
         return Response({"detail": "Segment path not yet available, try again later"}, status=starus.HTTP_200_OK)
 
 class VideoHLSMasterView(APIView):
