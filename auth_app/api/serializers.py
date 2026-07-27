@@ -5,8 +5,6 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from auth_app.models import UserProfile
 
-from . import services
-
 User = get_user_model()
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -59,13 +57,28 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         email = attrs.get("email")
         password = attrs.get("password")
 
-        email, oassword = services.validate_required_fields(attrs)
-        user = services.get_user_by_email(email)
-        services.check_user_password(user, password)
-        services.check_profile_active(user)
-        data = services.get_jwt_tokens(self, user, password)
+        if not email or not password:
+            raise serializers.ValidationError("Email and password required")
 
-        self.user = user
+        try:
+            user_obj = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No active account found.")
+
+        if not user_obj.check_password(password):
+            raise serializers.ValidationError("No active account found.")
+
+        try:
+            profile = UserProfile.objects.get(user=user_obj)
+            if profile.status != "active":
+                raise serializers.ValidationError(
+                    "Please activate your account first."
+                )
+        except UserProfile.DoesNotExist:
+            raise serializers.ValidationError("No account found.")
+
+        data = super().validate({"username": user_obj.username, "password": password})
+        self.user = user_obj
         return data
 
 class PasswordResetSerializer(serializers.Serializer):

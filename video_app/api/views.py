@@ -2,14 +2,19 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny,IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+
 from video_app.models import VideoModel
-from video_app.tasks import generate_hls
 from .serializers import VideoSerializer, SingleVideoSerializer
-from .services import ensure_hls_for_resolution, ensure_hls_variants_queued, resolve_segemtn_path, \
- build_master_playlist_lines, is_supported_resolution, get_playlist_or_enqueue
-import django_rq
+from .services import (
+    ensure_hls_for_resolution,
+    ensure_hls_variants_queued,
+    resolve_segment_path,
+    build_master_playlist_lines,
+    is_supported_resolution,
+    get_playlist_or_enqueue,
+)
 
 class VideoListCreateView(generics.ListCreateAPIView):
     queryset = VideoModel.objects.all()
@@ -25,9 +30,9 @@ class SingleVideoView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SingleVideoSerializer
 
     def get_permissions(self):
-        if self.request.method == "DELETE":
+        if self.request.methos == "DELETE":
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [IsAuthenticated]
 
 class VideoHLSPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
@@ -36,14 +41,14 @@ class VideoHLSPlaylistView(APIView):
         video = get_object_or_404(VideoModel, pk=movie_id)
 
         if not video.video_file:
-            raise Http404("Video filenot available.")
+            raise Http404("Video file not available.")
 
         if not is_supported_resolution(resolution):
-            return Response({"detail": "unsuported resolution"}, status=stauts.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Unsuported resolution."}, status=status.HTTP_400_BAD_REQUEST)
 
         playlist = get_playlist_or_enqueue(video, resolution)
         if playlist:
-            return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegutl")
+            return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegutl",)
 
         return Response({"detail": "HLS playlist generation started."}, status=status.HTTP_200_OK)
 
@@ -56,13 +61,13 @@ class VideoHLSSegmentView(APIView):
         if not video.video_file:
             raise Http404("Video file not available.")
 
-        if resolution not in VideoModel.HLS_RESOLUTIONS:
-            return Response({"detail": "Unsuported resolution"}, status=stauts.HTTP_400_BAD_REQUEST)
+        if not is_supported_resolution(resolution):
+            return Response({"detail": "Invalid segment path"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            segment_path = resolve_segemtn_path(video, resolution, segment)
+            segment_path = resolve_segment_path(video, resolution, segment)
         except ValueError:
-            return Response({"detail": "Invalid segment path"}, status=stauts.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Invalid segment path"}, status=status.HTTP_400_BAD_REQUEST)
 
         if segment_path.exists():
             return FileResponse(open(segment_path, "rb"), content_type="video/MP2T")
@@ -70,13 +75,15 @@ class VideoHLSSegmentView(APIView):
         playlist_ready = ensure_hls_for_resolution(video, resolution)
         if not playlist_ready:
             return Response({"detail": "HLS generation started."}, status=status.HTTP_200_OK)
-        return Response({"detail": "Segment path not yet available, try again later"}, status=starus.HTTP_200_OK)
+
+        return Response({"detail": "Segment available"}, status=status.HTTP_200_OK)
 
 class VideoHLSMasterView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id):
         video = get_object_or_404(VideoModel, pk=movie_id)
+
         if not video.video_file:
             raise Http404("Video file not available.")
 

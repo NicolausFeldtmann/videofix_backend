@@ -66,13 +66,10 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.user
         refresh = serializer.validated_data.get("refresh")
         access = serializer.validated_data.get("access")
-
         cookie_secure = not settings.DEBUG
-
         response = Response(
             {
                 "detail": "Login successful",
@@ -155,20 +152,13 @@ class PasswordResetView(APIView):
             user = User.objects.get(email__iexact=email)
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             reset_token = default_token_generator.make_token(user)
-            
-            reset_path = reverse(
-                "password-reset-confirm",
-                kwargs={"uidb64": uidb64, "token": reset_token}
-            )
+            reset_path = reverse("password-reset-confirm", kwargs={"uidb64": uidb64, "token": reset_token})
             domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
             protocol = 'https' if not settings.DEBUG else 'http'
             reset_url = f"{protocol}://{domain}{reset_path}"
             password_reset_requested.send(sender=PasswordResetView, user=user, reset_url=reset_url)
-
             return Response(
-                {"detail": "Password-reset-link has been send."},
-                status=status.HTTP_200_OK
-            )
+                {"detail": "Password-reset-link has been send."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetConfirmView(APIView):
@@ -182,23 +172,12 @@ class PasswordResetConfirmView(APIView):
                 uid = urlsafe_base64_decode(uidb64).decode()
                 user = get_object_or_404(User, pk=uid)
             except (TypeError, ValueError, OverflowError):
-                return Response(
-                    {"detail": "Invalid reset-link"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response({"detail": "Invalid reset-link"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not default_token_generator.check_token(user, token):
-                return Response(
-                    {"detail": "Reset token is invalid or expired."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
+                return Response({"detail": "Reset token is invalid or expired."}, status=status.HTTP_400_BAD_REQUEST)
             new_password = serializer.validated_data['new_password']
             user.set_password(new_password)
             user.save()
-
-            return Response(
-                {"detail": "Password successfully changed."},
-                status=status.HTTP_200_OK
-            )
+            return Response({"detail": "Password successfully changed."},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

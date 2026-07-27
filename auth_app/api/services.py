@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from auth_app.models import UserProfile
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 
 User = get_user_model()
 
@@ -37,3 +37,22 @@ def get_jwt_tokens(serializer: TokenObtainPairSerializer, user, password):
     return super(TokenObtainPairSerializer, serializer).validate(
         {"username": user.username, "password": password}
     )
+
+def get_access_token_from_refresh_cookie(request):
+    """
+    Liest den Refresh-Token aus dem Cookie, validiert ihn über SimpleJWT
+    und gibt den neuen Access-Token zurück.
+    Hebt bei Fehlern eine serializers.ValidationError aus.
+    """
+    refresh_token = request.COOKIES.get("refresh_token")
+    if not refresh_token:
+        raise serializers.ValidationError("Refresh token not found.")
+
+    serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
+    try:
+        serializer.is_valid(raise_exception=True)
+    except Exception:
+        raise serializers.ValidationError("Refresh token invalid.")
+
+    access_token = serializer.validated_data.get("access")
+    return access_token
