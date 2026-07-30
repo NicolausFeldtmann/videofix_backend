@@ -5,6 +5,8 @@ from .models import VideoModel
 
 
 def convert_480(source):
+    """Function to convert video resolution to 480p."""
+
     target = source + '480p.mp4'
     cmd = [
         'ffmpeg',
@@ -27,6 +29,9 @@ def convert_480(source):
 
 
 def generate_hls(source, resolution):
+    """Validates existance of requestet resolution."""
+    """Creates urls containig video mp4, resolution and ts-segment."""
+
     if resolution not in VideoModel.HLS_RESOLUTIONS:
         raise ValueError(f"Unsupported resolution: {resolution}")
 
@@ -66,5 +71,8 @@ def generate_hls(source, resolution):
 
 
 def generate_hls_variants(source):
+    """Uses function 'generate_hls' to create HLS files for all resolutions of VideoModel."""
+    """HLS files contains index.m3u8 and ts-segments."""
+
     for resolution in VideoModel.HLS_RESOLUTIONS:
         generate_hls(source, resolution)

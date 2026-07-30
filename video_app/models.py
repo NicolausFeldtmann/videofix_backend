@@ -3,6 +3,8 @@ from django.db import models
 from pathlib import Path
 
 class VideoModel(models.Model):
+    """Model class for videos and all needed fields ans fieldtypes."""
+
     title = models.CharField(max_length=30, default="")
     description = models.TextField(blank=True, default="", max_length=350)
     thumbnail_url = models.URLField(max_length=200)

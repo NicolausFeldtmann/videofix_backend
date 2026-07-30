@@ -7,6 +7,8 @@ import os
 
 @receiver(post_save, sender=VideoModel)
 def video_post_save(sender, instance, created, **kwargs):
+    """Uses task queue to generate hls-variants of new saved video mp4."""
+
     if created:
         print("New video created")
         queue = django_rq.get_queue('default', autocommit=True)
@@ -14,6 +16,8 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=VideoModel)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """Deletes file conceting to instance, if instance deletion is recived."""
+
     if instance.video_file:
         if os.path.isfile(instance.video_file.path):
             os.remove(instance.video_file.path)

@@ -8,6 +8,7 @@ from auth_app.models import UserProfile
 User = get_user_model()
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    """Serializer """
 
     type = serializers.CharField(source='status')
 
@@ -16,11 +17,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ["user", "email"]
 
 class RegistrationSerializer(serializers.Serializer):
+    """Serializer class to convert given user data to create account,"""
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     confirmed_password = serializers.CharField(write_only=True)
 
     def validate_email(self, value):
+        """Checks if given email has valid email form or is allready im use."""
+
         try:
             validate_email(value)
         except ValidationError:
@@ -30,11 +35,15 @@ class RegistrationSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
+        """Checks if password and confirmed_password match."""
+
         if data['password'] != data["confirmed_password"]:
             raise serializers.ValidationError("Passwords don't match.")
         return data
 
     def create(self, validated_data):
+        """Creates user account if email and password are valid."""
+
         email = validated_data["email"]
         password = validated_data["password"]
 
@@ -46,6 +55,10 @@ class RegistrationSerializer(serializers.Serializer):
         return user
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Serializer class to handle login."""
+    """Checks if given email and password are valid."""
+    """Checks if account of email is allready activated."""
+
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
@@ -54,6 +67,9 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         self.fields.pop("username", None)
 
     def validate(self, attrs):
+        """Validates if given email and password are valid."""
+        """Checks if user status is set to active."""
+
         email = attrs.get("email")
         password = attrs.get("password")
 
@@ -82,9 +98,14 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 class PasswordResetSerializer(serializers.Serializer):
+    """Serializer class to handle password reset."""
+    """Checks if given email adress is in use."""
+
     email = serializers.EmailField()
 
     def validate_email(self, value):
+        """Checks if given email exists."""
+
         try:
             user = User.objects.get(email__iexact=value)
         except User.DoesNotExist:
@@ -92,6 +113,8 @@ class PasswordResetSerializer(serializers.Serializer):
         return value
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Checks if new password and confirmed password matching"""
+
     new_password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True, min_length=8)
 

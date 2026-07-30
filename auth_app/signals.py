@@ -13,6 +13,8 @@ password_reset_requested = Signal()
 
 @receiver(password_reset_requested)
 def handle_password_reset(sender, user, reset_url, **kwargs):
+    """Handles content and sending of password-resetmail."""
+
     subject = 'Reset Password'
     message = (
         f"Hallo {user.username}, \n\n"
@@ -30,6 +32,9 @@ def handle_password_reset(sender, user, reset_url, **kwargs):
 
 @receiver(post_save, sender=UserProfile)
 def send_link_post_save(sender, instance, created, **kwargs):
+    """Handles content and sending od activations mail."""
+    """Contains url to set user status to 'active'."""
+
     if not created:
         return
     user = instance.user

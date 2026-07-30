@@ -20,9 +20,14 @@ from .serializers import UserProfileSerializer, RegistrationSerializer, EmailTok
 from auth_app.signals import password_reset_requested
 
 class RegistrationView(APIView):
+    """View to create user account, if serializer given valid data."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Funvtion to handle POST-request for account creation."""
+        """Returns status code depending of validation statu of given data."""
+
         serializer = RegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -40,9 +45,13 @@ class RegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ActivateAccountView(APIView):
+    """Checks if activation-token is valid."""
+    """If validation token is valid, setus user status to 'active'."""
+
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
+        """Function to check if activations-link ist valid and sets user status to 'active'."""
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = get_object_or_404(User, pk=uid)
@@ -60,10 +69,14 @@ class ActivateAccountView(APIView):
         return Response({"detail": "Account successfully activated"}, status=status.HTTP_200_OK)
 
 class CookieTokenObtainPairView(TokenObtainPairView):
+    """View to set access and refresh cookies, id login was successfull."""
+
     permission_classes = [AllowAny]
     serializer_class = EmailTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
+        """Function sets cookie necessary for user authentication."""
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.user
@@ -101,13 +114,17 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         return response
 
 class CookieRefreshView(TokenRefreshView):
+    """View to create and hand over new access cookie, if refresh token is valid."""
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        """Handles POST-request of refresh coockie. Resurns new cookie."""
+
         refresh_token = request.COOKIES.get("refresh_token")
 
         if refresh_token is None:
-            return Response({"detail": "Refresh token not found."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "Refresh token not found."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data={"refresh": refresh_token})
         try:
             serializer.is_valid(raise_exception=True)
@@ -128,6 +145,8 @@ class CookieRefreshView(TokenRefreshView):
         return response
 
 class LogoutView(APIView):
+    """View to handle user logout. Erases access and refresh token of user."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -142,9 +161,15 @@ class LogoutView(APIView):
         return response
 
 class PasswordResetView(APIView):
+    """View to handle POST-request for password reset."""
+    """Sends mail containing reset-link, wehen serializer is valid."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Defines content of reste mail. Generates and decodes token"""
+        """Generates reset-url containig decodet reset-token."""
+
         serializer = PasswordResetSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -162,9 +187,15 @@ class PasswordResetView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetConfirmView(APIView):
+    """Handles password-reset if serializer is valid."""
+    """Saves new password, if given password is valid."""
+
     permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):
+        """Function handles POST-request containig new password."""
+        """Sets and saves new password."""
+
         serializer = PasswordResetConfirmSerializer(data=request.data)
 
         if serializer.is_valid():

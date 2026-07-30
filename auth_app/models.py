@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
+    """Model class for users and their current activation status"""
 
     USER_STATUS = [
         ("active", "Active"),
