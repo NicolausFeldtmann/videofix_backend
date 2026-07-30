@@ -2,17 +2,7 @@
 
 <div align="center">
 
-[![GitHub stars](https://img.shields.io/github/stars/NicolausFeldtmann/videofix_backend?style=for-the-badge)](https://github.com/NicolausFeldtmann/videofix_backend/stargazers)
-
-[![GitHub forks](https://img.shields.io/github/forks/NicolausFeldtmann/videofix_backend?style=for-the-badge)](https://github.com/NicolausFeldtmann/videofix_backend/network)
-
-[![GitHub issues](https://img.shields.io/github/issues/NicolausFeldtmann/videofix_backend?style=for-the-badge)](https://github.com/NicolausFeldtmann/videofix_backend/issues)
-
-[![GitHub license](https://img.shields.io/github/license/NicolausFeldtmann/videofix_backend?style=for-the-the-badge)](LICENSE) <!-- TODO: Add a LICENSE file -->
-
 **A robust Django REST API backend for video management and user authentication.**
-
-[Live Demo](https://demo-link.com) <!-- TODO: Add live demo link if available -->
 
 </div>
 
@@ -119,18 +109,12 @@ Before you begin, ensure you have the following installed:
 
     ```bash
     docker-compose up -d --build
+    or
+    docker compose up -d --build
     ```
     `-d` runs the containers in detached mode (in the background). `--build` ensures your images are freshly built.
 
-4.  **Create a superuser (for Django Admin)**
-    You'll need a superuser account to access the Django administrative interface.
-
-    ```bash
-    docker-compose exec backend python manage.py createsuperuser
-    ```
-    Follow the prompts to create your superuser account.
-
-5.  **Access the API**
+4.  **Access the API**
     The API will be available at `http://localhost:8000/`.
 
     You can access the interactive API documentation (Swagger UI) at:
