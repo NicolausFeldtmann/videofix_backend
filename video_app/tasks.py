@@ -4,28 +4,28 @@ from pathlib import Path
 from .models import VideoModel
 
 
-def convert_480(source):
-    """Function to convert video resolution to 480p."""
+# def convert_480(source):
+#     """Function to convert video resolution to 480p."""
 
-    target = source + '480p.mp4'
-    cmd = [
-        'ffmpeg',
-        '-y',
-        '-i',
-        source,
-        '-s',
-        'hd480',
-        '-c:v',
-        'libx264',
-        '-crf',
-        '23',
-        '-c:a',
-        'aac',
-        '-strict',
-        '-2',
-        target,
-    ]
-    subprocess.run(cmd, check=True)
+#     target = source + '480p.mp4'
+#     cmd = [
+#         'ffmpeg',
+#         '-y',
+#         '-i',
+#         source,
+#         '-s',
+#         'hd480',
+#         '-c:v',
+#         'libx264',
+#         '-crf',
+#         '23',
+#         '-c:a',
+#         'aac',
+#         '-strict',
+#         '-2',
+#         target,
+#     ]
+#     subprocess.run(cmd, check=True)
 
 
 def generate_hls(source, resolution):

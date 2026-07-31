@@ -67,11 +67,11 @@ def build_master_playlist_lines(video: VideoModel, request: HttpRequest) -> List
     """Starts master-playlist and defines bandwidth. Greates finaly playlist url"""
 
     lines = ["#EXTM3U"]
-    bandwidth_map = {"360p": 800000, "480p": 1400000, "720p": 2800000}
+    bandwidth_map = {"480p": 1400000, "720p": 2800000, "1080p": 5000000}
 
     for resolution, size in VideoModel.HLS_RESOLUTIONS.items():
         width, height = size.split("x")
-        bandwidth = bandwidth_map.get(resolution, 1000000)
+        bandwidth = bandwidth_map.get(resolution, 1500000)
         playlist_url = request.build_absolute_uri(f"/video/{video.pk}/{resolution}/index.m3u8")
         lines.append(f"#EXT-X-STREAM-INF:BANDWIDTH={bandwidth},RESOLUTION={width}x{height}")
         lines.append(playlist_url)

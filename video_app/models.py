@@ -13,9 +13,9 @@ class VideoModel(models.Model):
     video_file = models.FileField(upload_to='videos/', blank=True, null=True)
 
     HLS_RESOLUTIONS = {
-        "360p": "640x360",
         "480p": "854x480",
         "720p": "1280x720",
+        "1080p": "1920x1080",
     }
 
     def __str__(self):
