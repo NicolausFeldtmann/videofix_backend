@@ -73,10 +73,15 @@ Before you begin, ensure you have the following installed:
     ```
 
 2.  **Environment setup**
+    Create and enter an enviroment.
+    ```
+    pytthon -m venv env
+    source bin/activate
+    ```
     Create a `.env` file in the project root by copying the example. You will need to configure your database credentials, Django secret key, and other settings.
 
     ```bash
-    cp .env.example .env
+    cp .env.template .env
     ```
     Edit `.env` and set the following variables:
     ```ini
@@ -104,8 +109,8 @@ Before you begin, ensure you have the following installed:
     ```
     **Note**: It is highly recommended to generate a strong, unique `SECRET_KEY` for production environments.
 
-3.  **Start the services**
-    This command will build the Docker images, create the containers, and start the backend and PostgreSQL services. The `backend.entrypoint.sh` script will automatically run migrations.
+4.  **Start the services**
+    This command will build the Docker images, create the containers, and start the backend and PostgreSQL services. The `backend.entrypoint.sh` script will automatically run    migrations.
 
     ```bash
     docker-compose up -d --build
@@ -114,14 +119,19 @@ Before you begin, ensure you have the following installed:
     ```
     `-d` runs the containers in detached mode (in the background). `--build` ensures your images are freshly built.
 
-4.  **Access the API**
+5. **Start Django-RQ for task queue management**
+    Open a new terminal and start Django-RQ with
+    ```bash
+    docker-compose exec web python manage.py rqworker
+    or
+    docker compose exec web python manage.py rqworker
+    ```
+
+6.  **Access the API**
     The API will be available at `http://localhost:8000/`.
 
-    You can access the interactive API documentation (Swagger UI) at:
-    `http://localhost:8000/api/schema/swagger-ui/`
-
-    And ReDoc documentation at:
-    `http://localhost:8000/api/schema/redoc/`
+    You can access the admin panel (and enter as awdmin with superuser name and password from 'env.' file):
+    `http://localhost:8000/admin/`
 
 ## 📁 Project Structure
 
@@ -199,66 +209,85 @@ The project uses environment variables for sensitive data and deployment-specifi
 
 ## 🔧 Development
 
-### Local Setup (without Docker Compose)
+### Detailed Setup (step-by-step set up with manuell migrations)
 
-If you prefer to run the backend locally without Docker Compose, ensure you have Python 3.9+ and PostgreSQL installed.
+If you prefer to set uo and run the backend with a more detailed description. 
 
-1.  **Install Python dependencies**
+1.  **Clone the repository**
     ```bash
-    pip install -r requirements.txt
+    git clone https://github.com/NicolausFeldtmann/videofix_backend.git
+    cd videofix_backend
     ```
-
-2.  **Database setup**
-    Ensure your PostgreSQL database is running and configured according to your `.env` file.
-    Then, apply database migrations:
+2. **Set up and enter enviroment. (Move colned backend in env directory)**
+   ```bash
+   python -m venv env
+   source bin/activete
+   ```
+3. **Create a `.env` file in the project root by copying the example.
+    You will need to configure your database credentials, Django secret key, and other settings.**
     ```bash
-    python manage.py makemigrations auth_app video_app core
-    python manage.py migrate
+    cp .env.template .env
     ```
+   Edit `.env` and set the following variables:
+    ```ini
+    # Django settings
+    SECRET_KEY=your_django_secret_key_here # IMPORTANT: Change this in production!
+    DEBUG=True
+    ALLOWED_HOSTS='*' # For development, specify actual hosts in production (e.g., 'localhost,127.0.0.1')
 
-3.  **Create a superuser**
+    Optional: Superuser creation on first run if DEBUG=True
+    DJANGO_SUPERUSER_USERNAME=admin
+    DJANGO_SUPERUSER_EMAIL=admin@example.com
+    ```
+4. **Start the services**
+   This command will build the Docker images and creates containers. (Full setp up is only necessary the first time. All the following starts 'docker compose up' is sufficient.)
+   ```bash
+   docker-compose up -d --build
+   or
+   docker compose up -d --build
+
+5. **Manuell migrations**
+   All migrations will be handled amtomaticly in the first set up.
+   But to be better safe than sorry, open a new terminal
+   ```bash
+   docker-compose exec web python manage.py makemigrations
+   docker-compose exec web python manage.py migrate
+   or
+   docker compose exec web python manage.py makemigrations
+   docker compose exec web python manage.py migrate
+   ```
+
+6. **Start Django-RQ for task queue management**
+    Open a new terminal and start Django-RQ with
     ```bash
-    python manage.py createsuperuser
+    docker-compose exec web python manage.py rqworker
+    or
+    docker compose exec web python manage.py rqworker
     ```
+7. **Access the API**
+    The API will be available at `http://localhost:8000/`.
 
-4.  **Start development server**
-    ```bash
-    python manage.py runserver
-    ```
-    The server will typically run on `http://localhost:8000/`.
+    You can access the admin panel (and enter as awdmin with superuser name and password from 'env.' file):
+    `http://localhost:8000/admin/`
 
-### Available `manage.py` Commands
+### Available `Docker` Commands
+(NOTICE! Like above, for some users only 'docker-compose' works, for others only 'docker compose')
 
-| Command                     | Description                                            |
+| Command                     | Description                                              |
 
-| :-------------------------- | :----------------------------------------------------- |
+| :-------------------------- | :-----------------------------------------------------   |
 
-| `python manage.py runserver`  | Starts the development server.                         |
+| `docker-compose up -d --build`  | First set up and server start.                       |
 
-| `python manage.py makemigrations [app_name]` | Creates new database migrations based on model changes. |
+| `docker-compose exec web python manage.py makemigrations`| Mauell migrations if needed |
 
-| `python manage.py migrate`    | Applies database migrations.                           |
+| `docker-compose exec web python manage.py migrate`| Applies migrations manually        |
 
-| `python manage.py createsuperuser` | Creates an administrative user.                        |
+| `dockerr-compose exec web python manage.py rqworker` | Starts Django-RQ.               |
 
-| `python manage.py collectstatic` | Collects static files into STATIC_ROOT.                |
-
-| `python manage.py test`       | Runs tests for the project.                            |
-
-| `python manage.py shell`      | Opens a Python shell with Django environment loaded.   |
+| `docker-compose down -v` | Shuts down server immediately AND REMOVES ALL CONTAINERS!   |
 
 ## 🧪 Testing
-
-This project uses Django's built-in testing framework.
-
-```bash
-
-# Run all tests
-docker-compose exec backend python manage.py test
-
-# Run tests for a specific app (e.g., auth_app)
-docker-compose exec backend python manage.py test auth_app
-```
 
 ## 🚀 Deployment
 
@@ -310,17 +339,19 @@ The following are examples of potential API endpoints. Refer to the Swagger UI/R
 #### Authentication
 
 -   `POST /api/auth/register/` - Register a new user.
--   `POST /api/auth/token/` - Obtain JWT access and refresh tokens.
+-   `GET /api/auth/activate/<uidb64>/<token>/` - Sets user status to 'active'.
+-   `POST /api/auth/login/` - Login as an user.
+-   `POST /api/auth/logout/` - Logout users.
+-   `POST /api/auth/password_reset/` - Sends password reset link to email adress.
+-   `POST /api/auth/password_reset/<uidb64>/<token>/` - Sets new valid password.
 -   `POST /api/auth/token/refresh/` - Refresh an expired access token.
--   `GET /api/auth/me/` - Get details of the authenticated user. (Requires authentication)
 
 #### Video Management
 
--   `GET /api/videos/` - List all videos. (May require authentication)
--   `POST /api/videos/` - Upload a new video. (Requires authentication)
--   `GET /api/videos/{id}/` - Retrieve details of a specific video.
--   `PUT /api/videos/{id}/` - Update a specific video. (Requires authentication)
--   `DELETE /api/videos/{id}/` - Delete a specific video. (Requires authentication)
+-   `GET /api/video/` - List all videos. (Require authentication)
+-   `GET /api/video/<int:movie_id>/<str:resolution>/index.m3u8` - Retrieve single video in requested resolution. (Requires authentication)
+-   `GET /api/video/<int:movie_id>/<str:resolution>/<str:segment>/` - Retrieve single video in requested resolution at a requested video segment (Requires authentication).
+-   `GET /api/video/video/<int:movie_id>/master.m3u8` - Retrive all available variants of a video. (Requires authentication)
 
 ## 🤝 Contributing
 
