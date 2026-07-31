@@ -287,8 +287,6 @@ If you prefer to set uo and run the backend with a more detailed description.
 
 | `docker-compose down -v` | Shuts down server immediately AND REMOVES ALL CONTAINERS!   |
 
-## 🧪 Testing
-
 ## 🚀 Deployment
 
 The project is designed for containerized deployment using Docker.
