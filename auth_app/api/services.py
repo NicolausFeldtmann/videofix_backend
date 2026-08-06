@@ -22,7 +22,7 @@ def get_user_by_email(email):
     try:
         return User.objects.get(email__iexact=email)
     except User.DoesNotExist:
-        raise serilaizers.ValidationError("Failed to login. Check email and password.")
+        raise serializers.ValidationError("Failed to login. Check email and password.")
 
 def check_user_password(user, password):
     """Checks if given password is user password."""

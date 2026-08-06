@@ -13,7 +13,7 @@ from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 from auth_app.models import UserProfile
 from .serializers import UserProfileSerializer, RegistrationSerializer, EmailTokenObtainPairSerializer, PasswordResetConfirmSerializer, PasswordResetSerializer
@@ -22,6 +22,7 @@ from auth_app.signals import password_reset_requested
 class RegistrationView(APIView):
     """View to create user account, if serializer given valid data."""
 
+    authentication_classes = [] 
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -48,25 +49,24 @@ class ActivateAccountView(APIView):
     """Checks if activation-token is valid."""
     """If validation token is valid, setus user status to 'active'."""
 
+    authentication_classes = [] 
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
-        """Function to check if activations-link ist valid and sets user status to 'active'."""
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = get_object_or_404(User, pk=uid)
         except (TypeError, ValueError, OverflowError):
-            return Response({"detail": "Invalid Activationslink"}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{settings.FRONTEND_URL}/pages/auth/activate.html?status=invalid")
 
         if not default_token_generator.check_token(user, token):
-            return Response(
-                {"detail": "Activation token is invalid or expired."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return redirect(f"{settings.FRONTEND_URL}/pages/auth/activate.html?status=expired")
 
         profile = get_object_or_404(UserProfile, user=user)
         profile.status = "active"
         profile.save()
-        return Response({"detail": "Account successfully activated"}, status=status.HTTP_200_OK)
+        return Response({"message": "Account successfully activated"}, status=status.HTTP_200_OK)
+
 
 class CookieTokenObtainPairView(TokenObtainPairView):
     """View to set access and refresh cookies, id login was successfull."""

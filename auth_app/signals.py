@@ -9,9 +9,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.urls import reverse
 from pathlib import Path
-
 import base64
-import os
 
 password_reset_requested = Signal()
 
@@ -41,9 +39,11 @@ def send_link_post_save(sender, instance, created, **kwargs):
         kwargs={"uidb64": uidb64, "token": activation_token}
     )
 
-    domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else "localhost"
+    domain = settings.FRONTEND_URL
     protocol = "https" if not settings.DEBUG else "http"
     activation_url = f"{protocol}://{domain}{activation_path}"
+
+    frontend_link = f"{settings.FRONTEND_URL}/pages/auth/activate.html?uid={uidb64}&token={activation_token}"
 
     logo_base64 = get_logo_base64()
     logo_html = ""
@@ -74,7 +74,7 @@ def send_link_post_save(sender, instance, created, **kwargs):
                         . To complete your registration and verify your email address, please click the link below:
                     </div>
                     <div style="margin: 48px 0px;">
-                        <a href="{activation_url}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; 
+                        <a href="{frontend_link}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; 
                         display: flex; justify-content: flex-start; padding: 12px; margin: 24px 0px; width: 280px;">Activate account</a>
                     </div>
                     <p style="margin: 14px 0px;">If you did not create an account with us, please disregard this email.</p>
@@ -95,52 +95,61 @@ def send_link_post_save(sender, instance, created, **kwargs):
     )
 
 @receiver(password_reset_requested)
-def handle_password_reset(sender, user, reset_url, **kwargs):
-    """Sends password reset mail with text, htaml parts and optional inline logo."""
+def handle_password_reset(sender, user, **kwargs):
+    """Sends password reset mail with auth-link to frontend.html."""
 
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
     username_safe = escape(user.username)
     logo_base64 = get_logo_base64()
-    logo_html = f'<img src="data:image/png;base,{logo_base64}" alt="Videoflix" style="max-width: 200px; height: auto;">'
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}" alt="Videoflix" style="max-width: 200px; height: auto;">'
 
     highlight_color = "#6500df"
+
+    reset_url = f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html?uid={uidb64}&token={token}"
+
     subject = "Videoflix - Password Reset"
     text_message = (
-        f"Hallo {user.username},\n\n"
+        f"Hello {user.username},\n\n"
         f"Please use the link below to change your password:\n"
         f"{reset_url}\n\n"
         f"This link is valid for 24 hours.\n\n"
         f"Best regards,\n"
-        f"Your Videoflix Team"
+        f"Your Videoflix Team" 
     )
 
     html_message = f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <meta charset="UTF-8>
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px">
-        <div style="display: flex; margin: 24px 0px;">
-            <div style="margon: 24px 0px;">
-                Hello, <br><br>
-                We recently recived a request to reset your password. If you made this request, please click on the following link
-                to reset your password:
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <div style="width: 100%;">
+                {logo_html}
             </div>
-            <div style="margin: 48px 0px;">
-                <a href="{reset_url}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; 
-                display: flex; justify-content: flex-start; padding: 12px; margin: 24px 0px; width: 280px;">Activate account</a>
+            <div style="margin: 24px 0px;">
+                <div style="margin: 24px 0px;">
+                    Hello <span style="color:{highlight_color};">{username_safe}</span>,<br><br>
+                    We recently received a request to reset your password. If you made this request, please click on the following link
+                    to reset your password:
+                </div>
+                <div style="margin: 48px 0px; text-align: center;">
+                    <a href="{reset_url}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; 
+                    display: inline-block; padding: 12px 24px;">Reset Password</a>
+                </div>
+                <p style="margin: 14px 0px;">Please note that for security reasons, this link is only valid for 24 hours.</p>
+                <p style="margin: 14px 0px;">If you did not request a password reset, please ignore this email.</p>
+                <p style="margin: 14px 0px;">Best regards,</p>
+                <p style="margin: 14px 0px;">Your Videoflix Team</p>
             </div>
-            <p style="margin: 14px 0px;">Please note that for securety reasons, this link is only valid for 24 hours.</p>
-            <p style="margin: 14px 0px;">If you did not request a password reset, please ignore this email.</p>
-            <p style="margin: 14px 0px;"> Best regards,</p>
-            <p style="margin: 14px 0px;"> Your Videoflix Team</p>
-        </div>
-        <div style="width: 100%;">
-            {logo_html}
         </div>
     </body>
+    </html>
     """
+
     email = EmailMultiAlternatives(
         subject=subject,
         body=text_message,
@@ -149,5 +158,3 @@ def handle_password_reset(sender, user, reset_url, **kwargs):
     )
     email.attach_alternative(html_message, "text/html")
     email.send(fail_silently=False)
-    
-    
