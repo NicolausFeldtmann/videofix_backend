@@ -31,7 +31,7 @@ class RegistrationSerializer(serializers.Serializer):
         except ValidationError:
             raise serializers.ValidationError("Invalid email.")
         if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Email already in use.")
+            raise serializers.ValidationError("Invalid email.")
         return value
 
     def validate(self, data):

@@ -163,7 +163,7 @@ class LogoutView(APIView):
 class PasswordResetView(APIView):
     """View to handle POST-request for password reset."""
     """Sends mail containing reset-link, wehen serializer is valid."""
-
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -189,7 +189,7 @@ class PasswordResetView(APIView):
 class PasswordResetConfirmView(APIView):
     """Handles password-reset if serializer is valid."""
     """Saves new password, if given password is valid."""
-
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request, uidb64, token):
