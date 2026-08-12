@@ -49,7 +49,7 @@ def send_link_post_save(sender, instance, created, **kwargs):
     logo_html = ""
 
     if logo_base64:
-        logo_html = f'<img src="data:image/png;base,{logo_base64}" alt="Videoflix" style="max-width: 200px; height: auto;">'
+        logo_html = f'<img src="data:image/png;base64,{logo_base64}" alt="Videoflix" style="max-width: 200px; height: auto;">'
 
     username_safe = escape(user.username)
     highlight_color = "#6500df"
