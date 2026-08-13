@@ -66,7 +66,7 @@ def send_link_post_save(sender, instance, created, **kwargs):
                 <div style="width: 100%;">
                     {logo_html}
                 </div>
-                <div style="display: flex; margin: 24px 0px;">
+                <div style="margin: 24px 0px;">
                     <div style="margin: 24px 0px;">
                         Dear <span style="color:{highlight_color};">{username_safe}</span>,
                         <br><br>
