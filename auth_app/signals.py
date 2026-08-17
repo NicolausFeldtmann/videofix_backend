@@ -110,7 +110,7 @@ def send_link_post_save(sender, instance, created, **kwargs):
     </head>
     <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-            <div style="width: 100%;">
+            <div style="width: 100%; display: flex; justify-content: center;">
                 {logo_html}
             </div>
             <div style="margin: 24px 0px;">
@@ -120,7 +120,7 @@ def send_link_post_save(sender, instance, created, **kwargs):
                     Thank you for registering with <span style="color:{HIGHLIGHT_COLOR}">Videoflix</span>
                     . To complete your registration and verify your email address, please click the link below:
                 </div>
-                <div style="margin: 48px 0px; text-align: center;">
+                <div style="margin: 48px 0px;>
                     <a href="{frontend_link}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; display: inline-block; padding: 12px 24px;">Activate account</a>
                 </div>
                 <p style="margin: 14px 0px;">If you did not create an account with us, please disregard this email.</p>
@@ -170,7 +170,7 @@ def handle_password_reset(sender, user, **kwargs):
     </head>
     <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px">
         <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-            <div style="width: 100%;">
+            <div style="width: 100%; display: flex; justify-content: center;">
                 {logo_html}
             </div>
             <div style="margin: 24px 0px;">
@@ -179,7 +179,7 @@ def handle_password_reset(sender, user, **kwargs):
                     We recently received a request to reset your password. If you made this request, please click on the following link
                     to reset your password:
                 </div>
-                <div style="margin: 48px 0px; text-align: center;">
+                <div style="margin: 48px 0px;>
                     <a href="{reset_url}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; display: inline-block; padding: 12px 24px;">Reset Password</a>
                 </div>
                 <p style="margin: 14px 0px;">Please note that for security reasons, this link is only valid for 24 hours.</p>
