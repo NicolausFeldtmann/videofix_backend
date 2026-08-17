@@ -1,6 +1,5 @@
 from email.mime.image import MIMEImage
 from pathlib import Path
-
 from django.dispatch import Signal, receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.tokens import default_token_generator
