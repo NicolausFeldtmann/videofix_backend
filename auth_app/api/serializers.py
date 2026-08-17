@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from auth_app.models import UserProfile
+from rest_framework.exceptions import AuthenticationFailed
 
 User = get_user_model()
 
@@ -74,24 +75,24 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         password = attrs.get("password")
 
         if not email or not password:
-            raise serializers.ValidationError("Email and password required")
+            raise AuthenticationFailed("Email and password required")
 
         try:
             user_obj = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError("No active account found.")
+            raise AuthenticationFailed("No active account found.")
 
         if not user_obj.check_password(password):
-            raise serializers.ValidationError("No active account found.")
+            raise AuthenticationFailed("No active account found.")
 
         try:
             profile = UserProfile.objects.get(user=user_obj)
             if profile.status != "active":
-                raise serializers.ValidationError(
+                raise AuthenticationFailed(
                     "Please activate your account first."
                 )
         except UserProfile.DoesNotExist:
-            raise serializers.ValidationError("No account found.")
+            raise AuthenticationFailed("No account found.")
 
         data = super().validate({"username": user_obj.username, "password": password})
         self.user = user_obj

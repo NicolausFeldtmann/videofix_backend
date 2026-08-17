@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'django_rq',
     'auth_app.apps.AuthAppConfig',
     'video_app.apps.VideoAppConfig',
@@ -194,7 +195,10 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "staticfiles"      # Ziel für collectstatic (Whitenoise-Ausgabe)
+STATICFILES_DIRS = [
+    BASE_DIR / "static",                     # Quelle: hier liegt logo_real.png
+]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "env" / "media"
