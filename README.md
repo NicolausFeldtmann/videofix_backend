@@ -75,7 +75,7 @@ Before you begin, ensure you have the following installed:
 2.  **Environment setup**
     Create and enter an enviroment.
     ```
-    pytthon -m venv env
+    python -m venv env
     source bin/activate
     ```
     Create a `.env` file in the project root by copying the example. You will need to configure your database credentials, Django secret key, and other settings.
