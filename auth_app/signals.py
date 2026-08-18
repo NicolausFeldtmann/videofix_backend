@@ -21,11 +21,10 @@ HIGHLIGHT_COLOR = "#6500df"
 from django.conf import settings
 
 def get_logo_mime_image():
-    """Lädt das Logo direkt aus dem Quell-Static-Verzeichnis."""
+    """Loads logo directly from static-source."""
     logo_path = settings.BASE_DIR / "static" / "images" / LOGO_FILENAME
 
     if not logo_path.exists():
-        print(f"Logo nicht gefunden unter: {logo_path}")
         return None
 
     with open(logo_path, "rb") as image_file:
@@ -37,7 +36,7 @@ def get_logo_mime_image():
     return image
 
 def get_logo_html():
-    """Gibt den img-Tag zurück, der das eingebettete Logo per CID referenziert."""
+    """Returns image-tag of imbeded logo."""
 
     return (
         f'<img src="cid:{LOGO_CID}" alt="Videoflix" '
@@ -46,7 +45,7 @@ def get_logo_html():
 
 
 def send_html_email(subject, text_message, html_message, recipient_email):
-    """Baut und versendet eine HTML-E-Mail mit eingebettetem Logo (CID)."""
+    """Builds and sends HTML email containing logo-image."""
 
     email = EmailMultiAlternatives(
         subject=subject,

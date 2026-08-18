@@ -54,7 +54,7 @@ def get_access_token_from_refresh_cookie(request):
 
     refresh_token = request.COOKIES.get("refresh_token")
 
-    if refresh_token:
+    if not refresh_token:
         raise serializers.ValidationError("Refresh token not found.")
 
     serializer = TokenRefreshSerializer(data={"refresh": refresh_token})

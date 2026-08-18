@@ -6,7 +6,7 @@ from django.utils.encoding import force_bytes
 from django.utils.html import escape
 from django.utils.http import urlsafe_base64_encode
 
-from auth_app.signals import get_logo_attachment, get_logo_html
+from auth_app.signals import get_logo_html
 
 User = get_user_model()
 
