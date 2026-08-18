@@ -97,6 +97,10 @@ Before you begin, ensure you have the following installed:
     POSTGRES_HOST=db # 'db' is the service name in docker-compose.yml
     POSTGRES_PORT=5432
 
+    EMAIL_HOST: smtp.example.com
+    EMAIL_HOST_USER=your_email_user
+    EMAIL_HOST_PASSWORD=your_email_user_password
+
     # Optional: Superuser creation on first run if DEBUG=True
     # DJANGO_SUPERUSER_USERNAME=admin
     # DJANGO_SUPERUSER_EMAIL=admin@example.com
