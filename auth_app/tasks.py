@@ -6,7 +6,7 @@ from django.utils.encoding import force_bytes
 from django.utils.html import escape
 from django.utils.http import urlsafe_base64_encode
 
-from auth_app.signals import get_logo_html
+from .email_utils import get_logo_html, get_logo_mime_image
 
 User = get_user_model()
 
@@ -72,8 +72,9 @@ def send_activation_email(user_id):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[user.email],
     )
-    logo_attachment = get_logo_attachment()
+    logo_attachment = get_logo_mime_image()
     if logo_attachment:
         email.attach(logo_attachment)
+
     email.attach_alternative(html_message, "text/html")
     email.send(fail_silently=False)
