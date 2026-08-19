@@ -5,7 +5,7 @@ LOGO_FILENAME = "logo_real.png"
 LOGO_CID = "logo_cid"
 
 def get_logo_mime_image():
-    """Loads logo and attaches it to email"""
+    """Loads logo and attaches it to email if existing."""
 
     logo_path = settings.BASE_DIR / "static" / "images" / LOGO_FILENAME
 

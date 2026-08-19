@@ -1,22 +1,19 @@
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect
 
 from auth_app.models import UserProfile
-from .serializers import UserProfileSerializer, RegistrationSerializer, EmailTokenObtainPairSerializer, PasswordResetConfirmSerializer, PasswordResetSerializer
+from .serializers import RegistrationSerializer, EmailTokenObtainPairSerializer, PasswordResetConfirmSerializer, PasswordResetSerializer
 from auth_app.signals import password_reset_requested
 
 class RegistrationView(APIView):
@@ -26,7 +23,7 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Funvtion to handle POST-request for account creation."""
+        """Function to handle POST-request for account creation."""
         """Returns status code depending of validation statu of given data."""
 
         serializer = RegistrationSerializer(data=request.data)
@@ -46,13 +43,16 @@ class RegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ActivateAccountView(APIView):
-    """Checks if activation-token is valid."""
-    """If validation token is valid, setus user status to 'active'."""
+    """View to set user-status to 'active' via activations-link"""
 
     authentication_classes = [] 
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
+        """Subfunction decodes user-id, checks activation token"""
+        """If token is valid, user-account-status is set to 'acive'."""
+        """If thats the case, the subfunction returns status-code 200_OK."""
+
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = get_object_or_404(User, pk=uid)
@@ -67,15 +67,16 @@ class ActivateAccountView(APIView):
         profile.save()
         return Response({"message": "Account successfully activated"}, status=status.HTTP_200_OK)
 
-
 class CookieTokenObtainPairView(TokenObtainPairView):
-    """View to set access and refresh cookies, id login was successfull."""
+    """View to handle login and set JWT-tokens in HTTP-cookies."""
 
     permission_classes = [AllowAny]
     serializer_class = EmailTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
-        """Function sets cookie necessary for user authentication."""
+        """Validates login data. If valid, creates acces and refresh tokens."""
+        """Sets acces and refresh tokens as cookies."""
+        """Returns status-code 200_OK"""
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

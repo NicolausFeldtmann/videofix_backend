@@ -6,11 +6,11 @@ class VideoModel(models.Model):
     """Model class for videos and all needed fields ans fieldtypes."""
 
     title = models.CharField(max_length=30, default="")
-    description = models.TextField(blank=True, default="", max_length=350)
-    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+    description = models.TextField(default="", max_length=350)
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=False, null=False, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     category = models.CharField(max_length=20, default="")
-    video_file = models.FileField(upload_to='videos/', blank=True, null=True)
+    video_file = models.FileField(upload_to='videos/', blank=False, null=False, default="")
 
     HLS_RESOLUTIONS = {
         "480p": "854x480",

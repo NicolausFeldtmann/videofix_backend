@@ -1,21 +1,12 @@
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from auth_app.models import UserProfile
 from rest_framework.exceptions import AuthenticationFailed
 
 User = get_user_model()
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    """Serializer """
-
-    type = serializers.CharField(source='status')
-
-    class Meta:
-        model = UserProfile
-        fields = ["user", "email"]
 
 class RegistrationSerializer(serializers.Serializer):
     """Serializer class to convert given user data to create account,"""

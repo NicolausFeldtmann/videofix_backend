@@ -78,6 +78,8 @@ def send_link_post_save(sender, instance, created, **kwargs):
     user_id = instance.user_id
 
     def enqueue_email():
+        """Inserts sending of activation mail in queue."""
+
         queue = django_rq.get_queue("default")
         queue.enqueue(send_activation_email, user_id)
 

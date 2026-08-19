@@ -13,6 +13,8 @@ User = get_user_model()
 
 def send_activation_email(user_id):
     """Sends activation email via queue."""
+    """Uses HTML-template to create and define email layout"""
+
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
