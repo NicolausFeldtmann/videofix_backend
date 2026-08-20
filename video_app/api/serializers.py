@@ -6,10 +6,10 @@ class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoModel
-        fields = ["id", "created_at", "title", "description", "thumbnail", "category", "video_file"]
+        fields = ["id", "created_at", "title", "description", "thumbnail_url", "category", "video_file"]
         read_only_fields = ["id", "created_at"]
         extra_kwargs = {
-            "thumbnail": {"required": True, "allow_null": False},
+            "thumbnail_url": {"required": True, "allow_null": False},
             "video_file": {"required": True, "allow_null": False},
         }
 
@@ -18,9 +18,9 @@ class SingleVideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoModel
-        fields = ["id", "created_at", "title", "description", "thumbnail", "category", "video_file"]
+        fields = ["id", "created_at", "title", "description", "thumbnail_url", "category", "video_file"]
         extra_kwargs = {
-            "thumbnail": {"required": True, "allow_null": False},
+            "thumbnail_url": {"required": True, "allow_null": False},
             "video_file": {"required": True, "allow_null": False},
         }
         

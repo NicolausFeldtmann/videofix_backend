@@ -62,9 +62,9 @@ class VideoHLSPlaylistView(APIView):
 
         playlist = get_playlist_or_enqueue(video, resolution)
         if playlist:
-            return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegutl",)
+            return FileResponse(open(playlist, "rb"), content_type="application/vnd.apple.mpegurl")
 
-        return Response({"detail": "HLS playlist generation started."}, status=status.HTTP_200_OK)
+        return Response({"detail": "HLS playlist generation started."}, status=status.HTTP_503_SERVICE_UNAVAILABLE, headers={"Retry-After": "5"})
 
 class VideoHLSSegmentView(APIView):
     """View to handle GET request"""
@@ -93,7 +93,7 @@ class VideoHLSSegmentView(APIView):
 
         playlist_ready = ensure_hls_for_resolution(video, resolution)
         if not playlist_ready:
-            return Response({"detail": "HLS generation started."}, status=status.HTTP_200_OK)
+            return Response({"detail": "HLS generation started."}, status=status.HTTP_503_SERVICE_UNAVAILABLE, headers={"Retry-After": "5"})
 
         return Response({"detail": "Segment available"}, status=status.HTTP_200_OK)
 

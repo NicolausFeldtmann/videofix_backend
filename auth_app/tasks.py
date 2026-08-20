@@ -56,7 +56,7 @@ def send_activation_email(user_id):
                     Thank you for registering with <span style="color:{highlight_color};">Videoflix</span>.
                     To complete your registration and verify your email address, please click the link below:
                 </div>
-                <div style="margin: 48px 0px; text-align: center;">
+                <div style="margin: 48px 0px;">
                     <a href="{frontend_link}" style="color: rgb(255, 255, 255); text-decoration: none; text-align: center; border-radius: 30px; background-color: #6500df; font-size: 24px; display: inline-block; padding: 12px 24px;">Activate account</a>
                 </div>
                 <p style="margin: 14px 0px;">If you did not create an account with us, please disregard this email.</p>
